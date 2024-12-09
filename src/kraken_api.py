@@ -5,11 +5,13 @@ from loguru import logger
 from websocket import create_connection
 from pydantic import BaseModel
 
+
 class Trade(BaseModel):
     product_id: str
     price: float
     quantity: float
     timestamp_ms: int
+
 
 class KarkenWebSocketTradeAPI:
     URL = 'wss://ws.kraken.com/v2'
@@ -43,7 +45,6 @@ class KarkenWebSocketTradeAPI:
         _ = self._ws.recv()
 
     def get_trades(self) -> List[Dict]:
-
         message = self._ws.recv()
         if 'heartbeat' in message:
             # when i get a heardbeat message
@@ -59,7 +60,7 @@ class KarkenWebSocketTradeAPI:
                     product_id=trade['symbol'],
                     price=float(trade['price']),
                     quantity=float(trade['qty']),
-                    timestamp_ms=self.to_ms(trade['timestamp'])
+                    timestamp_ms=self.to_ms(trade['timestamp']),
                 )
             )
 
@@ -67,22 +68,21 @@ class KarkenWebSocketTradeAPI:
         # breakpoint()
 
         return trades
-    
 
     @staticmethod
     def to_ms(timestamp: str) -> int:
         """
-        A function that transfores a timestamps expressed 
+        A function that transfores a timestamps expressed
         as a string like this  '2021-10-01T00:00:00.000Z'
         into a timestamp in milliseconds
 
         Args:
             timestamp (str): A string representing a timestamp
-        
+
         Returns:
             int: A timestamp in milliseconds
         """
         from datetime import datetime, timezone
+
         timestamp = datetime.fromisoformat(timestamp[:-1]).replace(tzinfo=timezone.utc)
         return int(timestamp.timestamp() * 1000)
-

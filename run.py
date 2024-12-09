@@ -1,6 +1,5 @@
 import signal
 import sys
-from typing import Dict, List
 
 from loguru import logger
 from quixstreams import Application
@@ -48,20 +47,24 @@ def produce_trades(
 
             for trade in trades:
                 # serialize an event using the defined topic
-                message = topic.serialize(key=trade.product_id, value={
-                    'product_id': trade.product_id,
-                    'price': trade.price,
-                    'quantity': trade.quantity,
-                    'timestamp_ms': trade.timestamp_ms
-                })
+                message = topic.serialize(
+                    key=trade.product_id,
+                    value={
+                        'product_id': trade.product_id,
+                        'price': trade.price,
+                        'quantity': trade.quantity,
+                        'timestamp_ms': trade.timestamp_ms,
+                    },
+                )
 
                 # produce a message into the kafka topic
                 producer.produce(topic=topic.name, value=message.value, key=message.key)
 
                 logger.info(
-                    f"Produced trade {trade.product_id} | {trade.price} | {trade.quantity} | {trade.timestamp_ms}"
+                    f'Produced trade {trade.product_id} | {trade.price} | {trade.quantity} | {trade.timestamp_ms}'
                 )
             from time import sleep
+
             sleep(1)
 
 
