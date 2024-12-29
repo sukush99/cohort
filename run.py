@@ -32,21 +32,16 @@ def produce_trades(
     Returns:
         None
     """
+    
     app = Application(broker_address=kafka_broker_address)
-
     topic = app.topic(name=kafka_topic_name, value_serializer='json')
-
     karken_api = KarkenWebSocketTradeAPI(product_id=product_id)
-
     logger.info(f'Producing trades to {kafka_topic_name} topic')
 
     with app.get_producer() as producer:
         while True:
-            # get trades from the karken api
             trades = karken_api.get_trades()
-
             for trade in trades:
-                # serialize an event using the defined topic
                 message = topic.serialize(
                     key=trade.product_id,
                     value={
@@ -56,16 +51,11 @@ def produce_trades(
                         'timestamp_ms': trade.timestamp_ms,
                     },
                 )
-
-                # produce a message into the kafka topic
                 producer.produce(topic=topic.name, value=message.value, key=message.key)
-
-                logger.info(
-                    f'Produced trade {trade.product_id} | {trade.price} | {trade.quantity} | {trade.timestamp_ms}'
-                )
+                logger.info(f'Produced trade {trade.product_id} | {trade.price} | {trade.quantity} | {trade.timestamp_ms}')
             from time import sleep
+            sleep(1)  #
 
-            sleep(1)
 
 
 if __name__ == '__main__':

@@ -34,24 +34,26 @@ class KarkenWebSocketTradeAPI:
         # subscribe to the trade channel
         msg = {
             'method': 'subscribe',
-            'params': {'channel': 'trade', 'symbol': [product_id], 'snapshot': False},
+            'params': {'channel': 'trade', 'symbol': self.product_id, 'snapshot': True},
         }
         # send the message
         self._ws.send(json.dumps(msg))
         logger.info('Subscription worked')
 
         # dumping the first two messages from the websocket
-        _ = self._ws.recv()
-        _ = self._ws.recv()
+        for product_id in self.product_id:
+            _ = self._ws.recv()
+            _ = self._ws.recv()
 
-    def get_trades(self) -> List[Dict]:
+
+    def get_trades(self) -> List[Trade]:
         message = self._ws.recv()
         if 'heartbeat' in message:
             # when i get a heardbeat message
             return []
         # parse the message str as a dict
         message = json.loads(message)
-
+        #breakpoint()
         # extract trades from the message
         trades = []
         for trade in message['data']:
@@ -86,3 +88,14 @@ class KarkenWebSocketTradeAPI:
 
         timestamp = datetime.fromisoformat(timestamp[:-1]).replace(tzinfo=timezone.utc)
         return int(timestamp.timestamp() * 1000)
+    
+
+    def to_dict(self) -> Dict:
+        return {
+            "product_id": self.product_id,
+            "price": self.price,
+            "quantity": self.quantity,
+            "timestamp_ms": self.timestamp_ms,
+        }
+
+
